@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+build/
+dist/
+
+hid_light_gui_profiles.json
