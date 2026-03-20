@@ -9,6 +9,9 @@ from tkinter import messagebox
 from tkinter import colorchooser
 from tkinter import ttk
 
+from PIL import Image, ImageDraw
+import pystray
+
 import send_hid
 
 # 自定义颜色报文（来自抓包推导）
@@ -267,6 +270,10 @@ class App(tk.Tk):
         self._auto_profile_job: str | None = None
         self._auto_profile_worker_running = False
         self._updating_picker = False
+        self._tray_icon: pystray.Icon | None = None
+        self._tray_visible = False
+        self._tray_notification_shown = False
+        self._is_exiting = False
         self._build_led_state()
 
         outer = tk.Frame(self, bg="#f3f4f6")
@@ -298,6 +305,8 @@ class App(tk.Tk):
         self._refresh_led_canvas()
         self._update_effect_buttons()
         self.bind("<Escape>", self._on_escape)
+        self.bind("<Unmap>", self._on_window_unmap)
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._schedule_auto_profile_poll(1000)
 
     def _profiles_file_path(self) -> Path:
@@ -992,6 +1001,15 @@ class App(tk.Tk):
                 pass
         self._auto_profile_job = self.after(delay_ms or self._auto_profile_poll_ms, self._poll_auto_profile)
 
+    def _cancel_auto_profile_poll(self):
+        if self._auto_profile_job is None:
+            return
+        try:
+            self.after_cancel(self._auto_profile_job)
+        except Exception:
+            pass
+        self._auto_profile_job = None
+
     def _trigger_auto_profile_check(self):
         self._schedule_auto_profile_poll(1)
 
@@ -1055,6 +1073,99 @@ class App(tk.Tk):
     def _on_escape(self, _event=None):
         if self.palette_brush_active:
             self.cancel_palette_brush()
+
+    def _build_tray_icon_image(self) -> Image.Image:
+        image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        draw.rounded_rectangle((6, 6, 58, 58), radius=15, fill=(17, 17, 17, 255))
+        draw.rounded_rectangle((14, 16, 50, 48), radius=12, fill=(255, 138, 61, 255))
+        draw.ellipse((20, 22, 44, 46), fill=(24, 255, 220, 255))
+        draw.ellipse((28, 30, 36, 38), fill=(255, 255, 255, 255))
+        return image
+
+    def _show_tray_icon(self):
+        if self._tray_visible:
+            return
+
+        menu = pystray.Menu(
+            pystray.MenuItem("显示主窗口", lambda _icon, _item: self.after(0, self._restore_from_tray), default=True),
+            pystray.MenuItem("退出", lambda _icon, _item: self.after(0, self._exit_from_tray)),
+        )
+        tray_icon = pystray.Icon(
+            "rainbow3_gui",
+            self._build_tray_icon_image(),
+            "RAINBOW3 灯效编辑",
+            menu,
+        )
+
+        def setup(icon: pystray.Icon):
+            icon.visible = True
+            if self._tray_notification_shown:
+                return
+            try:
+                icon.notify("程序已最小化到托盘，右键图标可恢复或退出。", "RAINBOW3 灯效编辑")
+                self._tray_notification_shown = True
+            except Exception:
+                pass
+
+        tray_icon.run_detached(setup=setup)
+        self._tray_icon = tray_icon
+        self._tray_visible = True
+
+    def _hide_tray_icon(self):
+        tray_icon = self._tray_icon
+        self._tray_icon = None
+        self._tray_visible = False
+        if tray_icon is None:
+            return
+        try:
+            tray_icon.stop()
+        except Exception:
+            pass
+
+    def _minimize_to_tray(self):
+        if self._is_exiting or self._tray_visible:
+            return
+        try:
+            self._show_tray_icon()
+        except Exception as e:
+            self._append(f"\n[托盘] 初始化失败：{e}\n")
+            self.deiconify()
+            self.state("normal")
+            self.lift()
+            return
+        self.withdraw()
+        self._append("\n[托盘] 已最小化到系统托盘\n")
+
+    def _restore_from_tray(self):
+        if self._is_exiting:
+            return
+        self._hide_tray_icon()
+        self.deiconify()
+        self.state("normal")
+        self.lift()
+        self.focus_force()
+        self._append("[托盘] 主窗口已恢复\n")
+
+    def _exit_from_tray(self):
+        self._on_close()
+
+    def _on_window_unmap(self, _event=None):
+        if self._is_exiting or self._tray_visible:
+            return
+        try:
+            if self.state() == "iconic":
+                self.after(0, self._minimize_to_tray)
+        except tk.TclError:
+            return
+
+    def _on_close(self):
+        if self._is_exiting:
+            return
+        self._is_exiting = True
+        self._cancel_auto_profile_poll()
+        self._hide_tray_icon()
+        self.destroy()
 
     def _mirrored_indices(self, indices: set[int]) -> set[int]:
         if not self.mirror_var.get():

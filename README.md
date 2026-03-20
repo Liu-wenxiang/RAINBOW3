@@ -1,8 +1,11 @@
 # 墨将彩虹3 灯效编辑器
 
 ## 彩虹3自带14颗炫酷RGB，官方软件却难用无比
+
 ## 不仅更灵活，还能关联游戏，一款游戏一款灯效！
+
 #### 设备信息取自我自己的彩虹3，其它的不一定能用，如果你发现了此仓库并使用后失败，请尝试联系我。liu-wx@qq.com
+
 #### 本项目纯AI指导抓包并完成编写，本人并不会python，有能力的请自己改良，并尽可能贡献本仓库。感谢支持
 
 一个用于控制 RAINBOW3 设备灯效的 Windows 图形界面工具，支持模式灯颜色、14 颗灯珠颜色、多色效果、配置保存、程序联动自动切换等功能。
@@ -21,6 +24,7 @@
 - 支持左右镜像联动
 - 支持保存多套配置方案
 - 支持关联程序自动切换配置
+- 支持窗口最小化到系统托盘，后台常驻
 - 支持打包为 Windows EXE 独立运行
 
 ## 目录结构
@@ -41,7 +45,7 @@
 在项目目录执行：
 
 ```powershell
-E:/Code/python/RAINBOW3/.venv/Scripts/python.exe -m pip install hidapi pyinstaller
+E:/Code/python/RAINBOW3/.venv/Scripts/python.exe -m pip install hidapi pyinstaller pystray pillow
 ```
 
 如果已经有虚拟环境，也可以先激活虚拟环境后再安装。
@@ -66,6 +70,7 @@ dist/RAINBOW3_GUI.exe
 
 - 打包后的配置文件会保存在 EXE 同目录下的 hid_light_gui_profiles.json
 - 建议将 EXE 放在固定目录中使用，方便保存配置
+- 点击窗口最小化按钮后会缩到系统托盘，右键托盘图标可恢复主窗口或直接退出
 
 ## 基本使用方法
 

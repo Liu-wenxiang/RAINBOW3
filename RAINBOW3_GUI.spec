@@ -2,6 +2,7 @@ from PyInstaller.utils.hooks import collect_all
 
 
 datas, binaries, hiddenimports = collect_all("hid")
+hiddenimports += ["pystray._win32", "PIL._tkinter_finder"]
 
 
 a = Analysis(
