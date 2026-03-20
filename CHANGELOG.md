@@ -1,28 +1,28 @@
-# Changelog
+# 更新日志
 
-All notable changes to this project will be documented in this file.
+本文件记录项目各版本的主要变更。
 
 ## v1.1.0 - 2026-03-20
 
-### Added
+### 新增
 
-- Added minimize-to-tray support for the main GUI window.
-- Added tray menu actions to restore the main window or exit the application.
-- Added first-run tray notification when the window is minimized.
+- 新增主窗口最小化到系统托盘功能。
+- 新增托盘菜单，可恢复主窗口或直接退出程序。
+- 新增首次最小化到托盘时的提示通知。
 
-### Changed
+### 变更
 
-- Improved Windows tray integration by switching to pystray detached mode.
-- Updated PyInstaller packaging configuration to include tray-related hidden imports.
-- Updated README with tray behavior, extra dependencies, and packaging notes.
+- 将 Windows 托盘集成方式调整为 pystray detached 模式，提高稳定性。
+- 更新 PyInstaller 打包配置，补充托盘相关 hidden imports。
+- 更新 README，补充托盘行为、额外依赖和打包说明。
 
-### Fixed
+### 修复
 
-- Prevented the window from disappearing if tray icon initialization fails.
+- 修复托盘初始化失败时窗口可能消失的问题。
 
 ## v1.0.0 - 2026-03-19
 
-### Added
+### 新增
 
-- Initial public release of the RAINBOW3 GUI lighting editor.
-- Support for mode light colors, per-LED color editing, multi-color effects, profiles, and program-linked auto switching.
+- 发布 RAINBOW3 GUI 灯效编辑器首个公开版本。
+- 支持模式灯颜色设置、单灯珠颜色编辑、多色效果、配置方案保存以及程序联动自动切换。
